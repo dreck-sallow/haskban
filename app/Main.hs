@@ -1,8 +1,11 @@
 module Main where
 
-import qualified MyLib (someFunc)
+import Storage (loadStorageMapping)
+
+-- import qualified MyLib (someFunc)
 
 main :: IO ()
 main = do
   putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+  storeMapping <- loadStorageMapping
+  print storeMapping
