@@ -23,6 +23,9 @@ instance FromJSON Project
 getProjectId :: Project -> Int
 getProjectId Project {..} = projectId
 
+defaultProject :: Project
+defaultProject = Project {projectId = 1, projectName = "2", projectGroups = []}
+
 appendGroup :: Project -> Group -> Project
 appendGroup project group =
   project {projectGroups = projectGroups project <> [group]}
