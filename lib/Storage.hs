@@ -1,24 +1,26 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GADTs #-}
 
-module Storage (loadStorageMapping, saveStoreMapping, loadProjectId, saveNewProject) where
+module Storage (loadStorageMapping, saveStoreMapping, loadProjectId, saveNewProject, loadData, saveData) where
 
 import Data.Aeson (FromJSON, ToJSON, decode, encode)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map.Strict as Map
 import Data.Time (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import Directory (storageFilePath)
 import GHC.Generics
 import System.IO.Error (catchIOError)
 
-data StoreMapping = StoreMapping
-  { projects :: Map.Map String String
-  }
+data StoreMapping where
+  StoreMapping :: {projects :: Map.Map String String} -> StoreMapping
   deriving (Generic, Show)
 
 instance ToJSON StoreMapping
 
 instance FromJSON StoreMapping
 
+-- file functions for save & read + parse file
 saveData :: (ToJSON a) => FilePath -> a -> IO ()
 saveData filePath obj = BL.writeFile filePath (encode obj)
 
@@ -28,10 +30,14 @@ loadData filePath = do
   return $ decode contents
 
 loadStorageMapping :: IO (Maybe StoreMapping)
-loadStorageMapping = catchIOError (loadData "storage.json") (const $ return Nothing) -- FIXME: use the path to local system path
+loadStorageMapping = do
+  storeFile <- storageFilePath
+  catchIOError (loadData storeFile) (const $ return Nothing)
 
 saveStoreMapping :: StoreMapping -> IO ()
-saveStoreMapping = saveData "storage.json" -- FIXME: use the path to local system path
+saveStoreMapping storeMapping = do
+  storeFile <- storageFilePath
+  saveData storeFile storeMapping
 
 loadProjectId :: String -> IO (Maybe String)
 loadProjectId projectName = do
@@ -57,5 +63,3 @@ currentTimeToInt = do
   currentTime <- getCurrentTime
   let timestamp = utcTimeToPOSIXSeconds currentTime
   return $ round timestamp
-
--- Ww need get the default data dir cross-operating-system
