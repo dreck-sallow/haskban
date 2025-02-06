@@ -30,6 +30,9 @@ appendGroup :: Project -> Group -> Project
 appendGroup project group =
   project {projectGroups = projectGroups project <> [group]}
 
+tasksFromGroup :: Project -> Int -> [Task]
+tasksFromGroup project' idx = groupTasks $ projectGroups project' !! idx
+
 -- End <- define project methods
 
 data Group = Group
