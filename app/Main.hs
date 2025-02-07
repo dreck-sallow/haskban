@@ -26,14 +26,15 @@ appEvent :: BrickEvent () e -> EventM () ProgramState ()
 appEvent (VtyEvent e) =
   case e of
     V.EvKey (V.KChar 'q') [] -> Main.halt
-    V.EvKey V.KRight [] -> modify (mainHandler NextGroup)
-    V.EvKey V.KLeft [] -> modify (mainHandler PrevGroup)
-    V.EvKey V.KDown [] -> modify (mainHandler NextTask)
-    V.EvKey V.KUp [] -> modify (mainHandler PrevTask)
+    V.EvKey V.KRight [] -> modify (mainHandler KeyRight)
+    V.EvKey V.KLeft [] -> modify (mainHandler KeyLeft)
+    V.EvKey V.KDown [] -> modify (mainHandler KeyDown)
+    V.EvKey V.KUp [] -> modify (mainHandler KeyUp)
+    V.EvKey V.KEnter [] -> modify (mainHandler Enter)
     _ -> return ()
 appEvent _ = return ()
 
-programApp :: Main.App ProgramState StateEvent ()
+programApp :: Main.App ProgramState EventCmd ()
 programApp =
   Main.App
     { Main.appDraw = drawUI,
@@ -94,8 +95,8 @@ initalState =
                   }
               ]
           },
-      focusCursor =
-        GroupI 0
+      focusCursor = GroupI 0,
+      selected = Empty
     }
 
 main :: IO ()
