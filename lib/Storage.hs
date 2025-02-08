@@ -6,11 +6,10 @@ module Storage (loadStorageMapping, saveStoreMapping, loadProjectId, saveNewProj
 import Data.Aeson (FromJSON, ToJSON, decode, encode)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map.Strict as Map
-import Data.Time (getCurrentTime)
-import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Directory (storageFilePath)
 import GHC.Generics
 import System.IO.Error (catchIOError)
+import Utils (currentTimestamp)
 
 data StoreMapping where
   StoreMapping :: {projects :: Map.Map String String} -> StoreMapping
@@ -32,7 +31,13 @@ loadData filePath = do
 loadStorageMapping :: IO (Maybe StoreMapping)
 loadStorageMapping = do
   storeFile <- storageFilePath
-  catchIOError (loadData storeFile) (const $ return Nothing)
+  -- catchIOError (loadData storeFile) (const $ return Nothing)
+  catchIOError
+    (loadData storeFile)
+    ( \e -> do
+        print e
+        return Nothing
+    )
 
 saveStoreMapping :: StoreMapping -> IO ()
 saveStoreMapping storeMapping = do
@@ -49,17 +54,7 @@ loadProjectId projectName = do
 saveNewProject :: String -> IO ()
 saveNewProject projectName = do
   content <- loadStorageMapping
-  timestamp <- currentTimeToInt
+  timestamp <- currentTimestamp
   case content of
     Nothing -> return ()
     Just (StoreMapping p) -> saveStoreMapping $ StoreMapping (Map.insert projectName (show timestamp) p)
-
---
--- Define utility functions for storage functionality
---
-
-currentTimeToInt :: IO Int
-currentTimeToInt = do
-  currentTime <- getCurrentTime
-  let timestamp = utcTimeToPOSIXSeconds currentTime
-  return $ round timestamp

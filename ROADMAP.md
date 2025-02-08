@@ -11,10 +11,11 @@ Roadmap for haskban program
     - [x] Show version information
     - [-] Show define commands for haskban program
   
-  - [ ] Get the store data from json file (Project)
-    - [ ] Define the JSON data structure
-    - [ ] Define methods for save and get the project data
-    - [?] Map the JSON data into program state 
+  - [x] Get the store data from json file (Project)
+    - [x] Define the JSON data structure
+    - [x] Define methods for save and get the project data
+    - [x] Map the JSON data into program state 
+    - [?] Replace json by sqlite database :v
   
   - [ ] Render panes pictures
     - [ ] Board screen

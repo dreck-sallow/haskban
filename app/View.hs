@@ -47,7 +47,7 @@ renderTask task isFocused = if isFocused then withAttr focusedAttrName drawTask 
       border $
         vBox
           [ strWrap (M.taskTitle task),
-            strWrap $ take 20 (M.taskDesc task) -- take a short description of task
+            strWrap $ take 20 (M.taskContent task) -- take a short description of task
           ]
 
 focusedAttrName :: AttrName

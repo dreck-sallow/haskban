@@ -1,5 +1,8 @@
 module Utils where
 
+import Data.Time (getCurrentTime)
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
 mapWithIndex :: (Int -> a -> b) -> [a] -> [b]
 mapWithIndex f = zipWith f [0 ..]
 
@@ -38,3 +41,9 @@ removeByIndex _ [] = []
 removeByIndex idx list
   | idx > (length list - 1) || idx < 0 = list
   | otherwise = take idx list ++ drop (idx + 1) list
+
+currentTimestamp :: IO Int
+currentTimestamp = do
+  currentTime <- getCurrentTime
+  let timestamp = utcTimeToPOSIXSeconds currentTime
+  return $ round timestamp

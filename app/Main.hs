@@ -13,15 +13,15 @@ import Project (loadProject)
 import State.FocusIndex (Cursor (..))
 import State.Program (ProgramState (..))
 import Storage (loadProjectId)
+import Utils (currentTimestamp)
 import View (drawUI, styleApp)
 
-loadProject' :: String -> IO M.Project
+loadProject' :: String -> IO (Maybe M.Project)
 loadProject' projectName = do
   projectId' <- loadProjectId projectName
-  project' <- loadProject (fromMaybe "" projectId')
-  case project' of
-    Nothing -> return M.defaultProject
-    Just p -> return p
+  case projectId' of
+    Nothing -> return Nothing
+    Just id' -> loadProject id'
 
 appEvent :: BrickEvent () e -> EventM () ProgramState ()
 appEvent (VtyEvent e) =
@@ -48,73 +48,34 @@ programApp =
 getColumnsCount :: Int
 getColumnsCount = 4
 
-initalState :: ProgramState
-initalState =
-  ProgramState
-    { project =
-        M.Project
-          { M.projectId = 1,
-            M.projectName = "2",
-            M.projectGroups =
-              [ M.Group
-                  { M.groupName = "Grupo 1",
-                    M.groupTasks =
-                      [ M.Task
-                          { M.taskId = 1,
-                            M.taskTitle = "Tarea 1",
-                            M.taskDesc =
-                              "Tarea del grupo numero 1",
-                            M.taskEndDate = Nothing
-                          },
-                        M.Task
-                          { M.taskId = 2,
-                            M.taskTitle = "Tarea 2",
-                            M.taskDesc =
-                              "Tarea del grupo numero 2",
-                            M.taskEndDate = Nothing
-                          }
-                      ]
-                  },
-                M.Group
-                  { M.groupName = "Grupo 2",
-                    M.groupTasks =
-                      [ M.Task
-                          { M.taskId = 2,
-                            M.taskTitle = "Tarea 2",
-                            M.taskDesc =
-                              "Tarea del grupo numero 2",
-                            M.taskEndDate = Nothing
-                          },
-                        M.Task
-                          { M.taskId = 2,
-                            M.taskTitle = "Tarea 2",
-                            M.taskDesc =
-                              "Tarea del grupo numero 2",
-                            M.taskEndDate = Nothing
-                          }
-                      ]
-                  }
-              ]
-          },
-      focusCursor = GroupI 0,
-      selected = Empty
-    }
-
--- FIXME: Return the default state, reading the current timestamp and get the project
-loadProjectOrDefault :: Maybe String -> IO M.Project
-loadProjectOrDefault Nothing =
-  return
-    M.Project
-      { M.projectId = 1,
-        M.projectName = "",
-        M.projectGroups = []
-      }
-loadProjectOrDefault (Just name) = loadProject' name
+initalState :: M.Project -> ProgramState
+initalState project' =
+  let focusCursor = if null (M.projectGroups project') then Empty else GroupI 0
+   in ProgramState
+        { project = project',
+          focusCursor = GroupI 0,
+          selected = Empty
+        }
 
 runApp :: Cli.CliOptions -> IO ()
 runApp (Cli.CliOptions p) = do
-  _project' <- loadProjectOrDefault p
-  void $ Main.defaultMain programApp initalState {project = _project'}
+  _project' <- loadProjectByName' p
+  case _project' of
+    Nothing -> print ("The project " ++ fromMaybe "" p ++ " not found")
+    Just _p -> void $ Main.defaultMain programApp (initalState _p)
+  where
+    defaultProject' :: IO M.Project
+    defaultProject' = do
+      projectId <- currentTimestamp
+      return
+        M.Project
+          { M.projectId = projectId,
+            M.projectName = show projectId,
+            M.projectGroups = []
+          }
+    loadProjectByName' :: Maybe String -> IO (Maybe M.Project)
+    loadProjectByName' Nothing = Just <$> defaultProject'
+    loadProjectByName' (Just n) = loadProject' n
 
 main :: IO ()
 main = do
