@@ -3,6 +3,7 @@ module Main where
 import Brick (modify)
 import qualified Brick.Main as Main
 import Brick.Types (BrickEvent (..), EventM)
+import qualified Cli
 import Control.Monad (void)
 import Data.Maybe (fromMaybe)
 import qualified Graphics.Vty as V
@@ -99,7 +100,23 @@ initalState =
       selected = Empty
     }
 
+-- FIXME: Return the default state, reading the current timestamp and get the project
+loadProjectOrDefault :: Maybe String -> IO M.Project
+loadProjectOrDefault Nothing =
+  return
+    M.Project
+      { M.projectId = 1,
+        M.projectName = "",
+        M.projectGroups = []
+      }
+loadProjectOrDefault (Just name) = loadProject' name
+
+runApp :: Cli.CliOptions -> IO ()
+runApp (Cli.CliOptions p) = do
+  _project' <- loadProjectOrDefault p
+  void $ Main.defaultMain programApp initalState {project = _project'}
+
 main :: IO ()
 main = do
-  _project' <- loadProject' "test"
-  void $ Main.defaultMain programApp initalState
+  cliOpts <- Cli.parseToCli
+  runApp cliOpts

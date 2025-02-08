@@ -1,11 +1,15 @@
 # ROADMAP 
 Roadmap for haskban program 
 
+> Legend for todo list
+> x = Finish
+> - = partial made
+
 ## Version 1.0.0 
   - [ ] Define cli params
-    - [ ] Get the project name to read and execute render program
-    - [ ] Show version information
-    - [ ] Show define commands for haskban program
+    - [x] Get the project name to read and execute render program
+    - [x] Show version information
+    - [-] Show define commands for haskban program
   
   - [ ] Get the store data from json file (Project)
     - [ ] Define the JSON data structure

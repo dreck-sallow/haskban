@@ -95,7 +95,7 @@ executable haskboard
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    other-modules:    View, Handlers, State.Program , State.FocusIndex
+    other-modules:    Cli, View, Handlers, State.Program , State.FocusIndex
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -105,6 +105,7 @@ executable haskboard
         base ^>=4.17.2.1,
         brick ^>=2.7,
         vty ^>=6.2,
+        optparse-applicative ^>= 0.18.1.0,
         haskboard
         
 
