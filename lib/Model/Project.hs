@@ -4,7 +4,7 @@ module Model.Project where
 
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
-import Models (Group)
+import Model.Group (Group)
 import Utils (currentTimestamp, insertByIndex, removeByIndex, replaceItm, swapIndices)
 
 data Project = Project

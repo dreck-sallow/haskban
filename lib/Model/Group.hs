@@ -20,6 +20,9 @@ instance ToJSON Group
 newGroup :: String -> Group
 newGroup name = Group {groupName = name, groupTasks = []}
 
+hasTasks :: Group -> Bool
+hasTasks group = not $ null (groupTasks group)
+
 withTasks :: [Task] -> Group -> Group
 withTasks tasks group = group {groupTasks = tasks}
 

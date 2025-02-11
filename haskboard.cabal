@@ -59,12 +59,18 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:  MyLib
-                    , Storage
+    exposed-modules: Storage
                     , Models
                     , Directory
                     , Project
                     , Utils
+                    , Model.Task
+                    , Model.Group
+                    , Model.Project
+                    , State.Cursor
+                    , State.App
+                    , View.Event
+                    , View.Handlers
 
     -- Modules included in this library but not exported.
     -- other-modules:
