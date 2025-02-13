@@ -1,5 +1,6 @@
 module Utils where
 
+import Data.Bool (bool)
 import Data.Maybe (isNothing)
 import Data.Time (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
@@ -66,6 +67,21 @@ prevListIndex index list
   | Just 0 == index = Just 0
   | maybe False (> length list - 1) index = Just $ length list - 1
   | otherwise = pred <$> index
+
+limitListIndex :: Int -> [a] -> Index
+-- limitListIndex Nothing list = bool Nothing (Just 0) ((not . null) list)
+limitListIndex idx list
+  | idx <= length list - 1 = Just idx
+  | idx > length list - 1 = Just $ bool 0 (length list - 1) ((length list - 1) >= 0)
+  | otherwise = Nothing
+
+-- | DEPRECATED: use limitListIndex instead
+boundLinstIndex :: Index -> [a] -> Index
+boundLinstIndex index list
+  | isNothing index && (not . null) list = Just 0
+  | maybe False (<= length list - 1) index = index
+  | maybe False (> length list - 1) index = Just $ bool 0 (length list - 1) ((length list - 1) >= 0)
+  | otherwise = Nothing
 
 currentTimestamp :: IO Int
 currentTimestamp = do

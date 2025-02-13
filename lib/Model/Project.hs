@@ -29,6 +29,9 @@ getGroup idx project
   | idx < 0 || idx >= length (projectGroups project) = Nothing
   | otherwise = Just $ projectGroups project !! idx
 
+getGroup' :: Int -> Project -> Group
+getGroup' idx project = projectGroups project !! idx
+
 modifyGroup :: Int -> (Group -> Group) -> Project -> Project
 modifyGroup idx fn project = case getGroup idx project of
   Nothing -> project

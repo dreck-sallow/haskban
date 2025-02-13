@@ -6,55 +6,48 @@ import Brick.Types (BrickEvent (..), EventM)
 import qualified Cli
 import Control.Monad (void)
 import Data.Maybe (fromMaybe)
+import Event (intoBoardEvent)
 import qualified Graphics.Vty as V
 import Handlers
-import qualified Models as M
+import qualified Model.Project as MP
 import Project (loadProject)
-import State.FocusIndex (Cursor (..))
-import State.Program (ProgramState (..))
+import State.App (AppState (..))
+import State.Cursor (Cursor (..))
 import Storage (loadProjectId)
+import UI (drawUI, styleApp)
 import Utils (currentTimestamp)
-import View (drawUI, styleApp)
+import View.Handlers (boardHandler)
 
-loadProject' :: String -> IO (Maybe M.Project)
+loadProject' :: String -> IO (Maybe MP.Project)
 loadProject' projectName = do
   projectId' <- loadProjectId projectName
   case projectId' of
     Nothing -> return Nothing
     Just id' -> loadProject id'
 
-appEvent :: BrickEvent () e -> EventM () ProgramState ()
-appEvent (VtyEvent e) =
-  case e of
-    V.EvKey (V.KChar 'q') [] -> Main.halt
-    V.EvKey V.KRight [] -> modify (mainHandler KeyRight)
-    V.EvKey V.KLeft [] -> modify (mainHandler KeyLeft)
-    V.EvKey V.KDown [] -> modify (mainHandler KeyDown)
-    V.EvKey V.KUp [] -> modify (mainHandler KeyUp)
-    V.EvKey V.KEnter [] -> modify (mainHandler Enter)
-    _ -> return ()
-appEvent _ = return ()
+appHandleEvent' :: BrickEvent () e -> EventM () AppState ()
+appHandleEvent' (VtyEvent e) = case e of
+  V.EvKey (V.KChar 'q') [] -> Main.halt
+  _ -> modify (\st -> boardHandler (intoBoardEvent (VtyEvent e) st) st)
+appHandleEvent' ev = modify (\st -> boardHandler (intoBoardEvent ev st) st)
 
-programApp :: Main.App ProgramState EventCmd ()
+programApp :: Main.App AppState e ()
 programApp =
   Main.App
     { Main.appDraw = drawUI,
       Main.appChooseCursor = Main.neverShowCursor,
-      Main.appHandleEvent = appEvent,
+      Main.appHandleEvent = appHandleEvent',
       Main.appStartEvent = return (),
       Main.appAttrMap = const styleApp
     }
 
-getColumnsCount :: Int
-getColumnsCount = 4
-
-initalState :: M.Project -> ProgramState
+initalState :: MP.Project -> AppState
 initalState project' =
-  let focusCursor = if null (M.projectGroups project') then Empty else GroupI 0
-   in ProgramState
+  let focusCursor = if null (MP.projectGroups project') then Empty else GroupI 0
+   in AppState
         { project = project',
           focusCursor = GroupI 0,
-          selected = Empty
+          selectedCursor = Empty
         }
 
 runApp :: Cli.CliOptions -> IO ()
@@ -64,16 +57,16 @@ runApp (Cli.CliOptions p) = do
     Nothing -> print ("The project " ++ fromMaybe "" p ++ " not found")
     Just _p -> void $ Main.defaultMain programApp (initalState _p)
   where
-    defaultProject' :: IO M.Project
+    defaultProject' :: IO MP.Project
     defaultProject' = do
       projectId <- currentTimestamp
       return
-        M.Project
-          { M.projectId = projectId,
-            M.projectName = show projectId,
-            M.projectGroups = []
+        MP.Project
+          { MP.projectId = projectId,
+            MP.projectName = show projectId,
+            MP.projectGroups = []
           }
-    loadProjectByName' :: Maybe String -> IO (Maybe M.Project)
+    loadProjectByName' :: Maybe String -> IO (Maybe MP.Project)
     loadProjectByName' Nothing = Just <$> defaultProject'
     loadProjectByName' (Just n) = loadProject' n
 
