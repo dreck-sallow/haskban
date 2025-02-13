@@ -13,22 +13,14 @@ data AppState = AppState
     selectedCursor :: Cursor
   }
 
-focusedItem :: AppState -> Maybe CursorItem
-focusedItem state = projectCursorItem (focusCursor state) (project state)
+setFocus :: Cursor -> AppState -> AppState
+setFocus cursor state = state {focusCursor = cursor}
 
-selectedItem :: AppState -> Maybe CursorItem
-selectedItem state = projectCursorItem (selectedCursor state) (project state)
+setSelected :: Cursor -> AppState -> AppState
+setSelected cursor state = state {selectedCursor = cursor}
 
-focusedGroup :: AppState -> Maybe MG.Group
-focusedGroup state = case focusCursor state of
-  Empty -> Nothing
-  GroupI gIdx -> Just $ MP.projectGroups (project state) !! gIdx
-  TaskI gIdx _ -> Just $ MP.projectGroups (project state) !! gIdx
+getProjectGroup :: Int -> AppState -> MG.Group
+getProjectGroup i state = MP.projectGroups (project state) !! i
 
-projectCursorItem :: Cursor -> MP.Project -> Maybe CursorItem
-projectCursorItem cursor project' = case cursor of
-  Empty -> Nothing
-  GroupI gIdx -> GroupItem <$> MP.getGroup gIdx project'
-  TaskI gIdx tIdx -> case MP.getGroup gIdx project' of
-    Nothing -> Nothing
-    Just p -> TaskItem <$> MG.getTask tIdx p
+getTasksByGroup :: Int -> AppState -> [MT.Task]
+getTasksByGroup i state = MG.groupTasks $ getProjectGroup i state

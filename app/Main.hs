@@ -28,8 +28,12 @@ loadProject' projectName = do
 appHandleEvent' :: BrickEvent () e -> EventM () AppState ()
 appHandleEvent' (VtyEvent e) = case e of
   V.EvKey (V.KChar 'q') [] -> Main.halt
-  _ -> modify (\st -> boardHandler (intoBoardEvent (VtyEvent e) st) st)
-appHandleEvent' ev = modify (\st -> boardHandler (intoBoardEvent ev st) st)
+  _ -> case intoBoardEvent (VtyEvent e) of
+    Nothing -> return ()
+    Just ev -> modify (boardHandler ev)
+appHandleEvent' e = case intoBoardEvent e of
+  Nothing -> return ()
+  Just ev -> modify (boardHandler ev)
 
 programApp :: Main.App AppState e ()
 programApp =

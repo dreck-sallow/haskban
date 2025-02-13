@@ -71,6 +71,8 @@ library
                     , State.App
                     , View.Event
                     , View.Handlers
+                    , Util.List
+                    , Util.Date
 
     -- Modules included in this library but not exported.
     -- other-modules:
