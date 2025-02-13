@@ -1,10 +1,12 @@
 module View.Handlers where
 
+import Data.Maybe (fromMaybe)
 import qualified Model.Group as MG
 import qualified Model.Project as MP
+import qualified Model.Task as MT
 import State.App (AppState (..), focusedGroup)
 import State.Cursor (Cursor (..), isEmpty)
-import Utils (Index, limitListIndex, nextListIndex, prevListIndex, swapIndices)
+import Utils (Index, insertByIndex, limitListIndex, nextListIndex, prevListIndex, removeByIndex, swapIndices)
 import View.Event (ViewBoardEvent (..))
 
 boardHandler :: ViewBoardEvent -> AppState -> AppState
@@ -15,7 +17,7 @@ boardHandler NextGroup state = changeGroupFocusIndex True state
 boardHandler Select state = selectCursor state
 boardHandler MoveBackTask state = orderTaskIndex False state
 boardHandler MoveNextTask state = orderTaskIndex True state
-boardHandler MoveTaskPrevGroup state = moveTaskInGroups True state
+boardHandler MoveTaskPrevGroup state = moveTaskInGroups False state
 boardHandler MoveTaskNextGroup state = moveTaskInGroups True state
 boardHandler _ state = state
 
@@ -78,18 +80,51 @@ moveTaskInGroups :: Bool -> AppState -> AppState
 moveTaskInGroups isNextBehaviour state = case selectedCursor state of
   (TaskI gIdx tIdx) -> case newGroupIdx gIdx of
     Nothing -> state
-    Just i ->
-      let newCursor = limitTaskIndex (i, tIdx)
-       in state {focusCursor = newCursor, selectedCursor = newCursor}
+    Just newIdx ->
+      let (currentGIdx, currentTIdx) = (gIdx, tIdx)
+          currentTask = MG.groupTasks (MP.getGroup' currentGIdx (project state)) !! currentTIdx
+          (newGIdx, newTIdx) = (newIdx, newTaskIdx (newIdx, currentTIdx))
+          updatedProject = insertTask (newGIdx, newTIdx) currentTask $ removeTask (currentGIdx, currentTIdx) (project state)
+       in state {project = updatedProject, focusCursor = TaskI newGIdx newTIdx, selectedCursor = TaskI newGIdx newTIdx}
   _ -> state
   where
     orderStrategy :: (Index -> [a] -> Index)
     orderStrategy = if isNextBehaviour then nextListIndex else prevListIndex
 
     newGroupIdx :: Int -> Index
-    newGroupIdx gIdx = orderStrategy (Just gIdx) (MP.projectGroups (project state))
+    newGroupIdx i = orderStrategy (Just i) (MP.projectGroups (project state))
 
-    limitTaskIndex :: (Int, Int) -> Cursor
-    limitTaskIndex (gIdx, tIdx) = case limitListIndex tIdx (MG.groupTasks (MP.getGroup' gIdx (project state))) of
-      Nothing -> GroupI gIdx
-      Just i -> TaskI gIdx i
+    newTaskIdx :: (Int, Int) -> Int
+    newTaskIdx (gIdx, tIdx) = fromMaybe 0 (limitListIndex tIdx (MG.groupTasks (MP.getGroup' gIdx (project state))))
+
+    removeTask :: (Int, Int) -> MP.Project -> MP.Project
+    removeTask (gIdx, tIdx) = MP.modifyGroup gIdx (\g -> MG.withTasks (removeByIndex tIdx (MG.groupTasks g)) g)
+
+    insertTask :: (Int, Int) -> MT.Task -> MP.Project -> MP.Project
+    insertTask (gIdx, tIdx) task = MP.modifyGroup gIdx (\g -> MG.withTasks (insertByIndex tIdx task (MG.groupTasks g)) g)
+
+-- moveTaskInGroups isNextBehaviour state = case selectedCursor state of
+--   (TaskI gIdx tIdx) -> case newGroupIdx gIdx of
+--     Nothing -> state
+--     Just i ->
+--       let newCursor = limitTaskIndex (i, tIdx)
+--        in state {focusCursor = newCursor, selectedCursor = newCursor}
+--   _ -> state
+--   where
+--     orderStrategy :: (Index -> [a] -> Index)
+--     orderStrategy = if isNextBehaviour then nextListIndex else prevListIndex
+
+--     newGroupIdx :: Int -> Index
+--     newGroupIdx gIdx = orderStrategy (Just gIdx) (MP.projectGroups (project state))
+
+--     limitTaskIndex :: (Int, Int) -> Cursor
+--     limitTaskIndex (gIdx, tIdx) = case limitListIndex tIdx (MG.groupTasks (MP.getGroup' gIdx (project state))) of
+--       Nothing -> GroupI gIdx
+--       Just i -> TaskI gIdx i
+
+-- Get (gIdx, tIdx) - (gIdx, tIdx)
+
+-- 1. Get the new GroupIdx (Nothing -> state)
+-- 2. Get the limited task index
+
+-- 3. (oldG, oldT) (newG, newT)
