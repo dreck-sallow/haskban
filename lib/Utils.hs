@@ -64,7 +64,8 @@ nextListIndex index list
 prevListIndex :: Index -> [a] -> Index
 prevListIndex _ [] = Nothing
 prevListIndex index list
-  | Just 0 == index = Just 0
+  -- | Just 0 == index = Just 0
+  | Just 0 == index = Nothing
   | maybe False (> length list - 1) index = Just $ length list - 1
   | otherwise = pred <$> index
 

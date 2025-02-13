@@ -102,29 +102,3 @@ moveTaskInGroups isNextBehaviour state = case selectedCursor state of
 
     insertTask :: (Int, Int) -> MT.Task -> MP.Project -> MP.Project
     insertTask (gIdx, tIdx) task = MP.modifyGroup gIdx (\g -> MG.withTasks (insertByIndex tIdx task (MG.groupTasks g)) g)
-
--- moveTaskInGroups isNextBehaviour state = case selectedCursor state of
---   (TaskI gIdx tIdx) -> case newGroupIdx gIdx of
---     Nothing -> state
---     Just i ->
---       let newCursor = limitTaskIndex (i, tIdx)
---        in state {focusCursor = newCursor, selectedCursor = newCursor}
---   _ -> state
---   where
---     orderStrategy :: (Index -> [a] -> Index)
---     orderStrategy = if isNextBehaviour then nextListIndex else prevListIndex
-
---     newGroupIdx :: Int -> Index
---     newGroupIdx gIdx = orderStrategy (Just gIdx) (MP.projectGroups (project state))
-
---     limitTaskIndex :: (Int, Int) -> Cursor
---     limitTaskIndex (gIdx, tIdx) = case limitListIndex tIdx (MG.groupTasks (MP.getGroup' gIdx (project state))) of
---       Nothing -> GroupI gIdx
---       Just i -> TaskI gIdx i
-
--- Get (gIdx, tIdx) - (gIdx, tIdx)
-
--- 1. Get the new GroupIdx (Nothing -> state)
--- 2. Get the limited task index
-
--- 3. (oldG, oldT) (newG, newT)
