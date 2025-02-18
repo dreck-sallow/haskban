@@ -26,6 +26,9 @@ hasTasks group = not $ null (groupTasks group)
 withTasks :: [Task] -> Group -> Group
 withTasks tasks group = group {groupTasks = tasks}
 
+setTasks :: ([Task] -> [Task]) -> Group -> Group
+setTasks fn group = group {groupTasks = fn (groupTasks group)}
+
 getTask :: Int -> Group -> Maybe Task
 getTask idx group
   | idx < 0 || idx >= length (groupTasks group) = Nothing

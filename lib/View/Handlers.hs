@@ -5,18 +5,19 @@ import Data.Maybe (fromMaybe)
 import qualified Model.Group as MG
 import qualified Model.Project as MP
 import qualified Model.Task as MT
-import State.App (AppState (..), getTasksByGroup, setFocus)
-import State.Cursor (Cursor (..), isEmpty)
+import State.App (AppState (..), getTasksByGroup, setFocus, setProject, setSelected)
+import State.Cursor (Cursor (..), isEmpty, isTaskI)
 import Util.List (Movement (..), isPrevMove, moveIndex, nextIndex, prevIndex)
 import Utils (Index, insertByIndex, limitListIndex, nextListIndex, prevListIndex, removeByIndex, swapIndices)
 import View.Event (BoardEvent (..))
 
 boardHandler :: BoardEvent -> AppState -> AppState
-boardHandler MoveUp state = changeTaskFocusIndex Prev state
-boardHandler MoveDown state = changeTaskFocusIndex Next state
+boardHandler MoveUp state = if isTaskI (selectedCursor state) then orderTaskIndex Prev state else changeTaskFocusIndex Prev state
+boardHandler MoveDown state = if isTaskI (selectedCursor state) then orderTaskIndex Next state else changeTaskFocusIndex Next state
 boardHandler MoveLeft state = changeGroupFocusIndex Prev state
 boardHandler MoveRight state = changeGroupFocusIndex Next state
 boardHandler SelectItem state = selectCursor state
+
 -- boardHandler _ state = state
 
 -- moveTaskInGroups
@@ -62,40 +63,18 @@ changeGroupFocusIndex mov state = case focusCursor state of
       | i > (length list - 1) = length list - 1
       | otherwise = i
 
--- changeGroupFocusIndex :: Bool -> AppState -> AppState
--- changeGroupFocusIndex isNextBehaviour state = case focusCursor state of
---   Empty -> state
---   GroupI gIdx -> state {focusCursor = newFocusCursor gIdx}
---   TaskI gIdx tIdx -> state {focusCursor = transferTaskIdx (newFocusCursor gIdx) tIdx}
---   where
---     orderStrategy :: (Index -> [a] -> Index)
---     orderStrategy = if isNextBehaviour then nextListIndex else prevListIndex
-
---     transferTaskIdx :: Cursor -> Int -> Cursor
---     transferTaskIdx (GroupI gIdx) taskIdx = case limitListIndex taskIdx (MG.groupTasks (MP.getGroup' gIdx (project state))) of
---       Nothing -> GroupI gIdx
---       Just i -> TaskI gIdx i
---     transferTaskIdx c _ = c
-
---     newFocusCursor :: Int -> Cursor
---     newFocusCursor gIdx =
---       maybe
---         Empty
---         GroupI
---         (orderStrategy (Just gIdx) (MP.projectGroups (project state)))
-
-orderTaskIndex :: Bool -> AppState -> AppState
-orderTaskIndex isNextBehaviour state = case selectedCursor state of
-  (TaskI gIdx tIdx) -> case orderStrategy (Just tIdx) (MG.groupTasks (MP.getGroup' gIdx (project state))) of
+orderTaskIndex :: Movement -> AppState -> AppState
+orderTaskIndex mov state = case selectedCursor state of
+  (TaskI gIdx tIdx) -> case moveStrategy tIdx (MG.groupTasks (MP.getGroup' gIdx (project state))) of
     Nothing -> state
-    Just newTIdx -> state {project = updateTaskIndex gIdx (tIdx, newTIdx) (project state), selectedCursor = TaskI gIdx newTIdx, focusCursor = TaskI gIdx newTIdx}
+    Just i -> setProject (updateTaskIndex gIdx (tIdx, i)) (setSelected (TaskI gIdx i) state)
   _ -> state
   where
-    orderStrategy :: (Index -> [a] -> Index)
-    orderStrategy = if isNextBehaviour then nextListIndex else prevListIndex
+    moveStrategy :: (Int -> [a] -> Maybe Int)
+    moveStrategy = moveIndex mov
 
     updateTaskIndex :: Int -> (Int, Int) -> MP.Project -> MP.Project
-    updateTaskIndex gIdx (oldIdx, newIdx) = MP.modifyGroup gIdx (\group -> group {MG.groupTasks = swapIndices oldIdx newIdx (MG.groupTasks group)})
+    updateTaskIndex gIdx (oldIdx, newIdx) = MP.modifyGroup gIdx (MG.setTasks (swapIndices oldIdx newIdx))
 
 moveTaskInGroups :: Bool -> AppState -> AppState
 moveTaskInGroups isNextBehaviour state = case selectedCursor state of

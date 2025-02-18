@@ -17,10 +17,13 @@ setFocus :: Cursor -> AppState -> AppState
 setFocus cursor state = state {focusCursor = cursor}
 
 setSelected :: Cursor -> AppState -> AppState
-setSelected cursor state = state {selectedCursor = cursor}
+setSelected cursor state = state {selectedCursor = cursor, focusCursor = cursor} -- TODO: check for another function for apply focusCursor
 
 getProjectGroup :: Int -> AppState -> MG.Group
 getProjectGroup i state = MP.projectGroups (project state) !! i
 
 getTasksByGroup :: Int -> AppState -> [MT.Task]
 getTasksByGroup i state = MG.groupTasks $ getProjectGroup i state
+
+setProject :: (MP.Project -> MP.Project) -> AppState -> AppState
+setProject fn state = state {project = fn (project state)}
