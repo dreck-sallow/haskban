@@ -27,9 +27,16 @@ prevIndex idx list
   | idx <= 0 || idx >= length list = Nothing -- Out of list bounds
   | otherwise = Just (idx - 1)
 
+limitIndexOrLast :: Int -> [a] -> Maybe Int
+limitIndexOrLast _ [] = Nothing
+limitIndexOrLast i list
+  | i < 0 = Just 0
+  | i > (length list - 1) = Just (length list)
+  | otherwise = Just i
+
 inListIndex :: Int -> [a] -> Bool
 inListIndex _i [] = False
-inListIndex i list = i == 0 && i < length list
+inListIndex i list = i >= 0 && i < length list
 
 notInListIndex :: Int -> [a] -> Bool
 notInListIndex i list = not $ inListIndex i list
