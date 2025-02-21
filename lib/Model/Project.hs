@@ -5,7 +5,8 @@ module Model.Project where
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import Model.Group (Group)
-import Utils (currentTimestamp, insertByIndex, removeByIndex, replaceItm, swapIndices)
+import Util.Date (currentTimestamp)
+import Util.List (insertByIndex, removeByIndex, replaceByIndex, swapIndices)
 
 data Project = Project
   { projectId :: Int,
@@ -35,10 +36,10 @@ getGroup' idx project = projectGroups project !! idx
 modifyGroup :: Int -> (Group -> Group) -> Project -> Project
 modifyGroup idx fn project = case getGroup idx project of
   Nothing -> project
-  Just tsk -> project {projectGroups = replaceItm idx (fn tsk) (projectGroups project)}
+  Just tsk -> project {projectGroups = replaceByIndex idx (fn tsk) (projectGroups project)}
 
 swapGroupByIndex :: (Int, Int) -> Project -> Project
-swapGroupByIndex (x, y) project = project {projectGroups = swapIndices x y (projectGroups project)}
+swapGroupByIndex (x, y) project = project {projectGroups = swapIndices (x, y) (projectGroups project)}
 
 deleteGroupByIndex :: Int -> Project -> Project
 deleteGroupByIndex idx project = project {projectGroups = removeByIndex idx (projectGroups project)}

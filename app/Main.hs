@@ -8,14 +8,13 @@ import Control.Monad (void)
 import Data.Maybe (fromMaybe)
 import Event (intoBoardEvent)
 import qualified Graphics.Vty as V
-import Handlers
 import qualified Model.Project as MP
 import Project (loadProject)
 import State.App (AppState (..))
 import State.Cursor (Cursor (..))
 import Storage (loadProjectId)
 import UI (drawUI, styleApp)
-import Utils (currentTimestamp)
+import Util.Date (currentTimestamp)
 import View.Handlers (boardHandler)
 
 loadProject' :: String -> IO (Maybe MP.Project)

@@ -9,7 +9,7 @@ import qualified Data.Map.Strict as Map
 import Directory (storageFilePath)
 import GHC.Generics
 import System.IO.Error (catchIOError)
-import Utils (currentTimestamp)
+import Util.Date (currentTimestamp)
 
 data StoreMapping where
   StoreMapping :: {projects :: Map.Map String String} -> StoreMapping

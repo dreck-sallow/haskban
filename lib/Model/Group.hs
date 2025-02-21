@@ -5,7 +5,7 @@ module Model.Group where
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import Model.Task (Task)
-import Utils (insertByIndex, removeByIndex, replaceItm, swapIndices)
+import Util.List (insertByIndex, removeByIndex, replaceByIndex, swapIndices)
 
 data Group = Group
   { groupName :: String,
@@ -37,10 +37,10 @@ getTask idx group
 modifyTask :: Int -> (Task -> Task) -> Group -> Group
 modifyTask idx fn group = case getTask idx group of
   Nothing -> group
-  Just tsk -> group {groupTasks = replaceItm idx (fn tsk) (groupTasks group)}
+  Just tsk -> group {groupTasks = replaceByIndex idx (fn tsk) (groupTasks group)}
 
 swapTaskByIndex :: (Int, Int) -> Group -> Group
-swapTaskByIndex (x, y) group = group {groupTasks = swapIndices x y (groupTasks group)}
+swapTaskByIndex (x, y) group = group {groupTasks = swapIndices (x,y) (groupTasks group)}
 
 deleteTaskByIndex :: Int -> Group -> Group
 deleteTaskByIndex idx group = group {groupTasks = removeByIndex idx (groupTasks group)}

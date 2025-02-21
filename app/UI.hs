@@ -11,7 +11,6 @@ import qualified Model.Task as MT
 import State.App (AppState (..))
 import qualified State.App as SA
 import State.Cursor (Cursor (..))
-import Utils (Index)
 
 drawUI :: SA.AppState -> [Widget ()]
 drawUI state = [hBox $ mapWithIndex (\i g -> renderGroup g (isCurrentGroup i, taskIdx)) (MP.projectGroups (project state))]
@@ -22,7 +21,7 @@ drawUI state = [hBox $ mapWithIndex (\i g -> renderGroup g (isCurrentGroup i, ta
       (TaskI gI _) -> gI == i
       _ -> False
 
-    taskIdx :: Index
+    taskIdx :: Maybe Int
     taskIdx = case focusCursor state of
       (TaskI _groupI taskI) -> Just taskI
       _ -> Nothing
@@ -30,7 +29,7 @@ drawUI state = [hBox $ mapWithIndex (\i g -> renderGroup g (isCurrentGroup i, ta
 mapWithIndex :: (Int -> a -> b) -> [a] -> [b]
 mapWithIndex f = zipWith f [0 ..]
 
-renderGroup :: MG.Group -> (Bool, Index) -> Widget ()
+renderGroup :: MG.Group -> (Bool, Maybe Int) -> Widget ()
 renderGroup group (currentGroup, taskI) = if currentGroup && isNothing taskI then withAttr focusedAttrName drawGroup else drawGroup
   where
     checkFocusTask :: Int -> Bool

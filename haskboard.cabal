@@ -60,10 +60,8 @@ library
 
     -- Modules exported by the library.
     exposed-modules: Storage
-                    , Models
                     , Directory
                     , Project
-                    , Utils
                     , Model.Task
                     , Model.Group
                     , Model.Project
@@ -103,7 +101,7 @@ executable haskboard
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    other-modules:    Cli, View, Handlers, State.Program , State.FocusIndex, Event, UI
+    other-modules:    Cli, Event, UI
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
